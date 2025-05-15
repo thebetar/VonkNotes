@@ -1,0 +1,6 @@
+node_modules
+dist
+
+src/assets/svg/brands
+src/assets/svg/regular
+src/assets/svg/solid
