@@ -33,8 +33,9 @@ function App(props) {
 			return;
 		}
 
-		if (localStorage.getItem('selectedNote')) {
-			const local = notes.find(n => n.title === localStorage.getItem('selectedNote'));
+		if (localStorage.getItem('currentNote')) {
+			const local = notes.find(n => n.title === localStorage.getItem('currentNote'));
+
 			if (local) {
 				notesStore.setCurrentNote(local);
 				return;

@@ -32,18 +32,35 @@ function NotesPreview({ addMode, setAddMode }) {
 		}
 
 		const newTag = tag.trim();
+		const currentNote = notesStore.currentNote;
 
-		await fetch(`/api/tags.php?id=${currentNote().id}`, {
+		const response = await fetch('/api/tags.php', {
 			method: 'POST',
 			body: JSON.stringify({
-				tag: newTag,
+				name: newTag,
+				noteId: currentNote.id,
 			}),
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		});
 
-		currentNote().tags = [...currentNote().tags, newTag];
+		if (!response.ok) {
+			const error = await response.json();
+			alert(`Error adding tag: ${error.message}`);
+			setLoading(false);
+			return;
+		}
+
+		const data = await response.json();
+
+		currentNote.tags = [
+			...currentNote.tags,
+			{
+				id: data.id,
+				name: newTag,
+			},
+		];
 		setTagInput('');
 
 		await notesStore.fetch();
@@ -54,15 +71,18 @@ function NotesPreview({ addMode, setAddMode }) {
 	async function removeTag(tag) {
 		setLoading(true);
 
-		await fetch(`/api/tags.php?id=${currentNote().id}`, {
+		const currentNote = notesStore.currentNote;
+
+		await fetch(`/api/tags.php`, {
 			method: 'DELETE',
 			body: JSON.stringify({
-				tag: tag,
+				tagId: tag,
+				noteId: currentNote.id,
 			}),
 			headers: { 'Content-Type': 'application/json' },
 		});
 
-		currentNote().tags = currentNote().tags.filter(t => t !== tag);
+		currentNote.tags = currentNote.tags.filter(t => t !== tag);
 		setTagInput('');
 
 		await notesStore.fetch();
@@ -71,17 +91,18 @@ function NotesPreview({ addMode, setAddMode }) {
 	}
 
 	async function deleteNote() {
-		notesStore.setCurrentNote(null);
+		const currentNote = notesStore.currentNote;
 
-		if (!window.confirm(`Delete note "${currentNote().title}"?`)) {
+		if (!window.confirm(`Delete note "${currentNote.title}"?`)) {
 			return;
 		}
 
 		setLoading(true);
 
-		await fetch(`/api/files?id=${currentNote().id}`, { method: 'DELETE' });
-		await fetchNotes();
+		await fetch(`/api/notes.php?id=${currentNote.id}`, { method: 'DELETE' });
+		await notesStore.fetch();
 
+		notesStore.setCurrentNote(null);
 		setLoading(false);
 	}
 
@@ -132,13 +153,13 @@ function NotesPreview({ addMode, setAddMode }) {
 							{currentNote().tags.map(tag => (
 								<div class="bg-zinc-600 text-white px-2 py-1 rounded flex items-center gap-x-1 hover:bg-zinc-500 transition-colors cursor-default">
 									<img src={TagSvg} class="w-[14px] h-[14px]" alt="Tag" />
-									<span class="text-base">{tag}</span>
+									<span class="text-base">{tag.name}</span>
 									<button
 										class="p-1 rounded-full hover:bg-red-700/50 cursor-pointer"
 										title="Delete tag"
 										onClick={e => {
 											e.stopPropagation();
-											removeTag(currentNote(), tag);
+											removeTag(tag.id);
 										}}
 									>
 										<img src={XMarkSvg} class="w-3 h-3" />

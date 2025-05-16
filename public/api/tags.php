@@ -59,11 +59,11 @@ $user_id = $user['id'];
 // GET: fetch all tags for user's notes
 if ($method === 'GET') {
     $stmt = $conn->prepare(
-        'SELECT t.id, t.name, t.parent_id, t.note_id, t.created_at, t.updated_at
+        'SELECT DISTINCT t.id, t.name, t.created_at, t.updated_at
          FROM tags t
-         LEFT JOIN notes n ON t.note_id = n.id
+         INNER JOIN note_tags nt ON nt.tag_id = t.id
+         INNER JOIN notes n ON nt.note_id = n.id
          WHERE n.user_id = ?
-         GROUP BY t.id
          ORDER BY t.name ASC'
     );
     $stmt->execute([$user_id]);
@@ -73,72 +73,112 @@ if ($method === 'GET') {
     exit;
 }
 
-// POST: create a new tag (optionally for a note)
+// POST: add a tag to a note (or create tag if not exists)
 if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
 
     $name = $input['name'] ?? '';
-    $note_id = $input['note_id'] ?? null;
-    $parent_id = $input['parent_id'] ?? null;
+    $note_id = $input['noteId'] ?? null;
 
-    if (!$name) {
-        echo json_encode(['success' => false, 'error' => 'Name required']);
+    if (!$name || !$note_id) {
+        echo json_encode(['success' => false, 'error' => 'Name and noteId required']);
         exit;
     }
 
-    // If note_id is provided, check if note belongs to user
-    if ($note_id) {
-        $stmt = $conn->prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
-        $stmt->execute([$note_id, $user_id]);
-        if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-            echo json_encode(['success' => false, 'error' => 'Note not found or not owned by user']);
-            exit;
-        }
+    // Check note ownership
+    $stmt = $conn->prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
+    $stmt->execute([$note_id, $user_id]);
+
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo json_encode(['success' => false, 'error' => 'Note not found or not owned by user']);
+        exit;
     }
 
-    $stmt = $conn->prepare(
-        'INSERT INTO tags (name, parent_id, note_id, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())'
-    );
-    if ($stmt->execute([$name, $parent_id, $note_id])) {
-        echo json_encode(['success' => true, 'id' => $conn->lastInsertId()]);
+    // Insert tag if not exists
+    $tagStmt = $conn->prepare('SELECT id FROM tags WHERE name = ?');
+    $tagStmt->execute([$name]);
+    $tag = $tagStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$tag) {
+        $insertTagStmt = $conn->prepare('INSERT INTO tags (name, created_at, updated_at) VALUES (?, NOW(), NOW())');
+        $insertTagStmt->execute([$name]);
+        $tag_id = $conn->lastInsertId();
     } else {
-        echo json_encode(['success' => false, 'error' => 'Failed to create tag']);
+        $tag_id = $tag['id'];
     }
+
+    // Link note and tag
+    $noteTagStmt = $conn->prepare('INSERT IGNORE INTO note_tags (note_id, tag_id) VALUES (?, ?)');
+    $noteTagStmt->execute([$note_id, $tag_id]);
+
+    echo json_encode(['success' => true, 'id' => $tag_id]);
     exit;
 }
 
-// PUT: update an existing tag
-if ($method === 'PUT') {
+// PATCH: update a tag name by changing parent ID or name
+if ($method === 'PATCH') {
     $input = json_decode(file_get_contents('php://input'), true);
 
-    $id = $input['id'] ?? null;
+    $tag_id = $input['tagId'] ?? null;
     $name = $input['name'] ?? '';
-    $parent_id = $input['parent_id'] ?? null;
-    $note_id = $input['note_id'] ?? null;
+    $parent_id = $input['parentId'] ?? null;
 
-    if (!$id || !$name) {
-        echo json_encode(['success' => false, 'error' => 'ID and name required']);
+    if (!$tag_id || !$name) {
+        echo json_encode(['success' => false, 'error' => 'tagId and name required']);
         exit;
     }
 
-    // Check tag ownership via note
-    if ($note_id) {
-        $stmt = $conn->prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
-        $stmt->execute([$note_id, $user_id]);
-        if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-            echo json_encode(['success' => false, 'error' => 'Note not found or not owned by user']);
-            exit;
-        }
-    }
-
-    $stmt = $conn->prepare(
-        'UPDATE tags SET name = ?, parent_id = ?, note_id = ?, updated_at = NOW() WHERE id = ?'
-    );
-    if ($stmt->execute([$name, $parent_id, $note_id, $id])) {
+    // Update tag name
+    $stmt = $conn->prepare('UPDATE tags SET name = ?, parent_id = ?, updated_at = NOW() WHERE id = ?');
+    if ($stmt->execute([$name, $parent_id, $tag_id])) {
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Failed to update tag']);
     }
+    exit;
+}
+
+
+// DELETE: remove a tag from a note (not delete tag itself)
+if ($method === 'DELETE') {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    $tag_id = $input['tagId'] ?? null;
+    $note_id = $input['noteId'] ?? null;
+
+    if (!$tag_id || !$note_id) {
+        echo json_encode(['success' => false, 'error' => 'tagId and noteId required']);
+        exit;
+    }
+
+    // Check note ownership
+    $stmt = $conn->prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
+    $stmt->execute([$note_id, $user_id]);
+
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        echo json_encode(['success' => false, 'error' => 'Note not found or not owned by user']);
+        exit;
+    }
+
+    // Remove tag from note
+    $stmt = $conn->prepare('DELETE FROM note_tags WHERE note_id = ? AND tag_id = ?');
+
+    if ($stmt->execute([$note_id, $tag_id])) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Failed to remove tag from note']);
+    }
+
+    // If the tag is not linked to any other notes, delete it
+    $stmt = $conn->prepare('SELECT COUNT(*) FROM note_tags WHERE tag_id = ?');
+    $stmt->execute([$tag_id]);
+    $count = $stmt->fetchColumn();
+
+    if ($count == 0) {
+        $deleteTagStmt = $conn->prepare('DELETE FROM tags WHERE id = ?');
+        $deleteTagStmt->execute([$tag_id]);
+    }
+
     exit;
 }
 

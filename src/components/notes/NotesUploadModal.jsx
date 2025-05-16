@@ -9,6 +9,7 @@ export default function NotesUploadModal({ close }) {
 	const [uploading, setUploading] = createSignal(false);
 	const [error, setError] = createSignal('');
 	const [success, setSuccess] = createSignal(false);
+	const [fileResults, setFileResults] = createSignal([]);
 
 	let fileInputRef;
 
@@ -23,25 +24,55 @@ export default function NotesUploadModal({ close }) {
 		setUploading(true);
 		setError('');
 		setSuccess(false);
+		setFileResults([]);
 
-		const formData = new FormData();
-		notes().forEach(file => formData.append('files', file));
+		const results = [];
+		let allSuccess = true;
 
-		try {
-			const res = await fetch('/api/files/upload', {
-				method: 'POST',
-				body: formData,
-			});
-			if (!res.ok) throw new Error('Upload failed');
-			setSuccess(true);
+		for (const file of notes()) {
+			const formData = new FormData();
+			formData.append('file', file);
+
+			try {
+				const res = await fetch('/api/notes.php?action=upload', {
+					method: 'POST',
+					body: formData,
+				});
+				const data = await res.json();
+				if (!res.ok || !data.success) {
+					allSuccess = false;
+					results.push({
+						name: file.name,
+						success: false,
+						error: data?.error || 'Upload failed',
+					});
+				} else {
+					results.push({
+						name: file.name,
+						success: true,
+					});
+				}
+			} catch (e) {
+				allSuccess = false;
+				results.push({
+					name: file.name,
+					success: false,
+					error: 'Upload failed',
+				});
+			}
+		}
+
+		setFileResults(results);
+		setSuccess(allSuccess);
+		if (allSuccess) {
 			setNotes([]);
-		} catch (e) {
-			setError('Upload failed');
-		} finally {
 			notesStore.fetch();
 			close();
-			setUploading(false);
+		} else {
+			setError('Some files failed to upload.');
+			notesStore.fetch();
 		}
+		setUploading(false);
 	};
 
 	const handleFileButtonClick = () => {
@@ -95,6 +126,17 @@ export default function NotesUploadModal({ close }) {
 
 				{error() && <div class="text-red-400 text-sm mb-2">{error()}</div>}
 				{success() && <div class="text-green-400 text-sm mb-2">Upload successful!</div>}
+				{fileResults().length > 0 && (
+					<div class="mb-2">
+						<ul>
+							{fileResults().map(res => (
+								<li class={res.success ? 'text-green-400 text-sm' : 'text-red-400 text-sm'}>
+									{res.name}: {res.success ? 'Uploaded' : `Failed (${res.error})`}
+								</li>
+							))}
+						</ul>
+					</div>
+				)}
 
 				<div class="flex justify-end gap-2 mt-4">
 					<button

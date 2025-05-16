@@ -119,7 +119,10 @@ function NotesList({ setAddMode }) {
 						class={`relative group h-24 flex items-center justify-between px-2 py-3 border-b border-zinc-700 cursor-pointer hover:bg-zinc-700 transition-colors ${
 							currentNote()?.title === note.title ? 'bg-zinc-700/60 font-semibold' : ''
 						}`}
-						onClick={() => notesStore.setCurrentNote(note)}
+						onClick={() => {
+							localStorage.setItem('currentNote', note.title);
+							notesStore.setCurrentNote(note);
+						}}
 					>
 						<div class="overflow-hidden w-full">
 							<div class="truncate">{note.title}</div>
