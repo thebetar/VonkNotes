@@ -59,11 +59,12 @@ $user_id = $user['id'];
 // GET: fetch all tags for user's notes
 if ($method === 'GET') {
     $stmt = $conn->prepare(
-        'SELECT DISTINCT t.id, t.name, t.created_at, t.updated_at
+        'SELECT t.id, t.name, t.parent_id, t.created_at, t.updated_at, COUNT(nt.note_id) as note_count
          FROM tags t
-         INNER JOIN note_tags nt ON nt.tag_id = t.id
-         INNER JOIN notes n ON nt.note_id = n.id
-         WHERE n.user_id = ?
+         LEFT JOIN note_tags nt ON nt.tag_id = t.id
+         LEFT JOIN notes n ON nt.note_id = n.id
+         WHERE n.user_id = ? OR n.user_id IS NULL
+         GROUP BY t.id
          ORDER BY t.name ASC'
     );
     $stmt->execute([$user_id]);

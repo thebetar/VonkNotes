@@ -39,19 +39,22 @@ export default function NotesUploadModal({ close }) {
 					body: formData,
 				});
 				const data = await res.json();
+
 				if (!res.ok || !data.success) {
 					allSuccess = false;
+
 					results.push({
 						name: file.name,
 						success: false,
 						error: data?.error || 'Upload failed',
 					});
-				} else {
-					results.push({
-						name: file.name,
-						success: true,
-					});
+					return;
 				}
+
+				results.push({
+					name: file.name,
+					success: true,
+				});
 			} catch (e) {
 				allSuccess = false;
 				results.push({

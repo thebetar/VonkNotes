@@ -82,14 +82,16 @@ function App(props) {
 
 	return (
 		<div class="flex">
-			<nav class="bg-zinc-900 h-screen w-80 text-white shadow-md z-50 relative">
+			<nav class="bg-zinc-900 h-screen w-80 text-white shadow-md z-50 relative max-h-screen flex flex-col">
 				<header class="text-xl font-semibold px-4 pt-6 pb-4">Assist AI</header>
 
 				<ul>{routes.map(renderNavItem)}</ul>
 
 				<header class="text-xl font-semibold px-4 pt-6 pb-2">Tags</header>
 
-				<ul class="flex flex-col gap-2 px-4">{tagsStore.tags.map(renderTagItem)}</ul>
+				<ul class="flex flex-col gap-2 px-4 flex-1 overflow-y-auto py-2">
+					{tagsStore.tags.map(renderTagItem)}
+				</ul>
 			</nav>
 
 			<div class="h-screen w-screen overflow-y-scroll bg-zinc-800 text-white">

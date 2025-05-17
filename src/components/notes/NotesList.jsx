@@ -59,6 +59,16 @@ function NotesList({ setAddMode }) {
 					return 1;
 				}
 
+				const aUpdatedAt = new Date(a.updated_at);
+				const bUpdatedAt = new Date(b.updated_at);
+
+				if (aUpdatedAt > bUpdatedAt) {
+					return -1;
+				}
+				if (aUpdatedAt < bUpdatedAt) {
+					return 1;
+				}
+
 				return 0;
 			});
 	}
@@ -80,7 +90,7 @@ function NotesList({ setAddMode }) {
 	}, [notes(), filter, params]);
 
 	return (
-		<aside class="w-80 bg-zinc-800 border-r border-zinc-700 overflow-y-auto h-screen">
+		<aside class="w-80 bg-zinc-800 border-r border-zinc-700 overflow-y-auto h-screen flex flex-col">
 			<div class="flex items-center justify-between px-4 py-5 border-b border-zinc-700">
 				<h2 class="text-xl font-bold">Notes</h2>
 
@@ -113,7 +123,7 @@ function NotesList({ setAddMode }) {
 				/>
 			</div>
 
-			<ul>
+			<ul class="flex-1 overflow-scroll">
 				{filteredNotes().map(note => (
 					<li
 						class={`relative group h-24 flex items-center justify-between px-2 py-3 border-b border-zinc-700 cursor-pointer hover:bg-zinc-700 transition-colors ${
