@@ -14,8 +14,6 @@ function App(props) {
 	const notesStore = useNotes();
 	const tagsStore = useTags();
 
-	const tags = tagsStore.tags;
-
 	const location = useLocation();
 
 	const initialiseApplication = async () => {
@@ -62,7 +60,7 @@ function App(props) {
 	);
 
 	const renderTagItem = item => {
-		let href = `/notes/tag/${item}`;
+		let href = `/notes/tag/${item.id}`;
 
 		if (location.pathname === href) {
 			href = '/notes';
@@ -76,7 +74,7 @@ function App(props) {
 					href={href}
 				>
 					<img src={TagIcon} class="w-4 h-4" />
-					{item}
+					{item.name}
 				</A>
 			</li>
 		);
@@ -91,7 +89,7 @@ function App(props) {
 
 				<header class="text-xl font-semibold px-4 pt-6 pb-2">Tags</header>
 
-				<ul class="flex flex-col gap-2 px-4">{tags.map(renderTagItem)}</ul>
+				<ul class="flex flex-col gap-2 px-4">{tagsStore.tags.map(renderTagItem)}</ul>
 			</nav>
 
 			<div class="h-screen w-screen overflow-y-scroll bg-zinc-800 text-white">

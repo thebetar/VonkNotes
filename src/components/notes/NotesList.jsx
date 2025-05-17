@@ -65,9 +65,9 @@ function NotesList({ setAddMode }) {
 
 	createEffect(() => {
 		function runFilter() {
-			if (params.tag) {
-				const tag = params.tag.toLowerCase();
-				setFilteredNotes(getFilteredNotes().filter(n => n.tags.some(t => t.toLowerCase() === tag)));
+			if (params.tagId) {
+				const tagId = Number(params.tagId.toLowerCase() || -1);
+				setFilteredNotes(getFilteredNotes().filter(n => n.tags.some(t => t.id === tagId)));
 				return;
 			}
 

@@ -1,7 +1,6 @@
 import { createSignal, onMount } from 'solid-js';
 
-import TagSvg from '../assets/svg/used/tag.svg';
-import XMarkSvg from '../assets/svg/used/xmark.svg';
+import FolderSvg from '../assets/svg/used/folder.svg';
 
 function TagsPage() {
 	const [tags, setTags] = createSignal([]);
@@ -32,24 +31,17 @@ function TagsPage() {
 	return (
 		<div class="flex h-full min-h-screen">
 			{tags().length > 0 ? (
-				<ul class="flex flex-col gap-2 p-4">
+				<ul class="w-80">
 					{tags().map(tag => (
 						<li
 							key={tag}
-							class="bg-zinc-600 text-white px-2 py-1 rounded flex items-center gap-x-1 hover:bg-zinc-500 transition-colors cursor-default"
+							class="relative group h-12 flex items-center justify-between px-2 py-3 border-b border-zinc-700 cursor-pointer transition-colors"
 						>
-							<img src={TagSvg} class="w-[14px] h-[14px]" alt="Tag" />
 							<span class="text-base">{tag.name}</span>
-							<button
-								class="p-1 rounded-full hover:bg-red-700/50 cursor-pointer"
-								title="Delete tag"
-								onClick={e => {
-									e.stopPropagation();
-									removeTag(tag.id);
-								}}
-							>
-								<img src={XMarkSvg} class="w-3 h-3" />
-							</button>
+
+							<div className="p-2 rounded-full hover:bg-zinc-700/50 cursor-pointer">
+								<img src={FolderSvg} class="w-4 h-4" alt="Folder" />
+							</div>
 						</li>
 					))}
 				</ul>

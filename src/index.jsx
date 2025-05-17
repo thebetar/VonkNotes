@@ -20,7 +20,7 @@ render(
 	() => (
 		<Router root={App}>
 			<Route path="/notes" component={NotesPage} />
-			<Route path="/notes/tag/:tag" component={NotesPage} />
+			<Route path="/notes/tag/:tagId" component={NotesPage} />
 			<Route path="/tags" component={TagsPage} />
 			<Route path="*" component={RedirectPage} />
 		</Router>
