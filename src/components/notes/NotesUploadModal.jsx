@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js';
 
 import { useNotes } from '../../services/notes';
+import XMarkSvg from '../../assets/svg/used/xmark.svg';
 
 export default function NotesUploadModal({ close }) {
 	const notesStore = useNotes();
@@ -119,8 +120,18 @@ export default function NotesUploadModal({ close }) {
 					<div class="max-h-96 overflow-y-auto">
 						<ul class="list-disc list-inside mb-4">
 							{notes().map(file => (
-								<li key={file.name} class="text-sm text-zinc-400">
+								<li
+									key={file.name}
+									class="text-sm text-zinc-400 flex items-center justify-between py-2 px-1 border-b border-zinc-300/50"
+								>
 									{file.name}
+
+									<img
+										src={XMarkSvg}
+										class="w-4 h-4 cursor-pointer hover:opacity-60 transition-opacity"
+										alt="Remove"
+										onClick={() => setNotes(notes().filter(n => n.name !== file.name))}
+									/>
 								</li>
 							))}
 						</ul>
