@@ -1,26 +1,14 @@
 <?php
+include_once '../config.php';
+
+$db_server = $DB_SERVER;
+$db_name = $DB_NAME;
+$db_user = $DB_USERNAME;
+$db_password = $DB_PASSWORD;
+
 session_start();
 header('Content-Type: application/json');
 
-if (
-	isset($_SERVER['SERVER_NAME']) &&
-	(
-		strpos($_SERVER['SERVER_NAME'], 'localhost') !== false ||
-		$_SERVER['SERVER_NAME'] === '127.0.0.1'
-	)
-) {
-	// Local environment (Docker)
-	$db_server = 'db';
-	$db_name = 'test_db';
-	$db_user = 'admin';
-	$db_password = 'admin';
-} else {
-	// Strato environment
-	$db_server = 'database-5017698673.webspace-host.com';
-	$db_name = 'dbs14148873';
-	$db_user = 'dbu248351';
-	$db_password = 'yABUFAv5DmK!74z';
-}
 
 // As per documentation of strato https://www.strato.nl/faq/hosting/het-inrichten-van-databases/
 try {

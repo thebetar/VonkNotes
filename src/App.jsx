@@ -47,6 +47,11 @@ function App(props) {
 		initialiseApplication();
 	});
 
+	const handleLogout = async () => {
+		await fetch('/api/auth.php?action=logout', { method: 'POST' });
+		setLoginModal(true);
+	};
+
 	const renderNavItem = item => (
 		<li>
 			<A
@@ -92,6 +97,16 @@ function App(props) {
 				<ul class="flex flex-col gap-2 px-4 flex-1 overflow-y-auto py-2">
 					{tagsStore.tags.map(renderTagItem)}
 				</ul>
+
+				{/* Logout button at the bottom */}
+				<div class="px-4 pb-4 mt-auto">
+					<button
+						class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm text-zinc-200 cursor-pointer transition-colors"
+						onClick={handleLogout}
+					>
+						Log out
+					</button>
+				</div>
 			</nav>
 
 			<div class="h-screen w-screen overflow-y-scroll bg-zinc-800 text-white">

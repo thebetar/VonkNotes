@@ -4,6 +4,7 @@ export default function AuthModal({ onSuccess }) {
 	const [mode, setMode] = createSignal('login'); // 'login' or 'register'
 	const [email, setEmail] = createSignal('');
 	const [password, setPassword] = createSignal('');
+	const [repeatPassword, setRepeatPassword] = createSignal('');
 	const [loading, setLoading] = createSignal(false);
 	const [error, setError] = createSignal('');
 
@@ -11,6 +12,12 @@ export default function AuthModal({ onSuccess }) {
 		e.preventDefault();
 		setLoading(true);
 		setError('');
+
+		if (mode() === 'register' && password() !== repeatPassword()) {
+			setError('Passwords do not match');
+			setLoading(false);
+			return;
+		}
 
 		const action = mode() === 'login' ? 'login' : 'register';
 
@@ -31,6 +38,7 @@ export default function AuthModal({ onSuccess }) {
 
 			setEmail('');
 			setPassword('');
+			setRepeatPassword('');
 			setError('');
 
 			onSuccess(data.user);
@@ -39,6 +47,14 @@ export default function AuthModal({ onSuccess }) {
 		}
 		setLoading(false);
 	};
+
+	function isValid() {
+		if (mode() === 'login') {
+			return email() && password();
+		} else {
+			return email() && password() && repeatPassword() && password() === repeatPassword();
+		}
+	}
 
 	return (
 		<div class="fixed top-0 left-0 h-screen w-screen z-50 flex items-center justify-center bg-black/60">
@@ -88,6 +104,24 @@ export default function AuthModal({ onSuccess }) {
 					/>
 				</div>
 
+				{mode() === 'register' && (
+					<div class="flex flex-col gap-2">
+						<label class="text-sm font-medium" for="auth-repeat-password">
+							Repeat Password
+						</label>
+						<input
+							id="auth-repeat-password"
+							type="password"
+							class="w-full p-2 border border-zinc-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+							placeholder="Repeat your password"
+							value={repeatPassword()}
+							onInput={e => setRepeatPassword(e.target.value)}
+							required
+							autocomplete="new-password"
+						/>
+					</div>
+				)}
+
 				<button
 					type="submit"
 					class={`bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-semibold mt-2 ${
@@ -110,11 +144,12 @@ export default function AuthModal({ onSuccess }) {
 							Don't have an account?{' '}
 							<button
 								type="button"
-								class="text-indigo-400 hover:underline"
+								class="text-indigo-400 hover:underline disabled:opacity-50"
 								onClick={() => {
 									setMode('register');
 									setError('');
 								}}
+								disabled={loading() || isValid()}
 							>
 								Register
 							</button>
@@ -124,11 +159,12 @@ export default function AuthModal({ onSuccess }) {
 							Already have an account?{' '}
 							<button
 								type="button"
-								class="text-indigo-400 hover:underline"
+								class="text-indigo-400 hover:underline disabled:opacity-50"
 								onClick={() => {
 									setMode('login');
 									setError('');
 								}}
+								disabled={loading() || isValid()}
 							>
 								Log In
 							</button>
