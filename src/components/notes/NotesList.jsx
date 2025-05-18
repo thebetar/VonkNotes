@@ -90,7 +90,7 @@ function NotesList({ setAddMode }) {
 	}, [notes(), filter, params]);
 
 	return (
-		<aside class="w-80 bg-zinc-800 border-r border-zinc-700 overflow-y-auto h-screen flex flex-col">
+		<aside class="w-80 bg-zinc-800 border-r border-zinc-700 h-screen flex flex-col">
 			<div class="flex items-center justify-between px-4 py-5 border-b border-zinc-700">
 				<h2 class="text-xl font-bold">Notes</h2>
 
@@ -123,7 +123,7 @@ function NotesList({ setAddMode }) {
 				/>
 			</div>
 
-			<ul class="flex-1 overflow-scroll">
+			<ul class="flex-1 overflow-y-scroll overflow-x-hidden">
 				{filteredNotes().map(note => (
 					<li
 						class={`relative group h-24 flex items-center justify-between px-2 py-3 border-b border-zinc-700 cursor-pointer hover:bg-zinc-700 transition-colors ${
