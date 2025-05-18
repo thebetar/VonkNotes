@@ -49,6 +49,10 @@ export default function AuthModal({ onSuccess }) {
 	};
 
 	function isValid() {
+		if (loading()) {
+			return false;
+		}
+
 		if (mode() === 'login') {
 			return email() && password();
 		} else {
@@ -125,9 +129,9 @@ export default function AuthModal({ onSuccess }) {
 				<button
 					type="submit"
 					class={`bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-semibold mt-2 ${
-						loading() ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+						!isValid() ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
 					}`}
-					disabled={loading() || !isValid()}
+					disabled={!isValid()}
 				>
 					{loading()
 						? mode() === 'login'
@@ -144,7 +148,7 @@ export default function AuthModal({ onSuccess }) {
 							Don't have an account?{' '}
 							<button
 								type="button"
-								class="text-indigo-400 hover:underline disabled:opacity-50"
+								class="text-indigo-400 hover:underline"
 								onClick={() => {
 									setMode('register');
 									setError('');
@@ -158,7 +162,7 @@ export default function AuthModal({ onSuccess }) {
 							Already have an account?{' '}
 							<button
 								type="button"
-								class="text-indigo-400 hover:underline disabled:opacity-50"
+								class="text-indigo-400 hover:underline"
 								onClick={() => {
 									setMode('login');
 									setError('');
