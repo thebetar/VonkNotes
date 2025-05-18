@@ -127,7 +127,7 @@ export default function AuthModal({ onSuccess }) {
 					class={`bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-semibold mt-2 ${
 						loading() ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
 					}`}
-					disabled={loading()}
+					disabled={loading() || !isValid()}
 				>
 					{loading()
 						? mode() === 'login'
@@ -149,7 +149,6 @@ export default function AuthModal({ onSuccess }) {
 									setMode('register');
 									setError('');
 								}}
-								disabled={loading() || isValid()}
 							>
 								Register
 							</button>
@@ -164,7 +163,6 @@ export default function AuthModal({ onSuccess }) {
 									setMode('login');
 									setError('');
 								}}
-								disabled={loading() || isValid()}
 							>
 								Log In
 							</button>
