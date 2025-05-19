@@ -22,7 +22,7 @@ export default function AuthModal({ onSuccess }) {
 		const action = mode() === 'login' ? 'login' : 'register';
 
 		try {
-			const res = await fetch(`/api/auth.php?action=${action}`, {
+			const res = await fetch(`${window.location.origin}/api/auth.php?action=${action}`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email: email(), password: password() }),

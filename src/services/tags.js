@@ -20,7 +20,7 @@ export const useTags = () => ({
     },
     async fetch() {
         try {
-            const response = await fetch('/api/tags.php');
+            const response = await fetch(`${window.location.origin}/api/tags.php`);
 
             if (!response.ok) {
                 return false;

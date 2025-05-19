@@ -27,7 +27,7 @@ const notesStore = {
     },
     async fetch() {
         try {
-            const response = await fetch('/api/notes.php');
+            const response = await fetch(`${window.location.origin}/api/notes.php`);
             if (!response.ok) {
                 return false;
             }

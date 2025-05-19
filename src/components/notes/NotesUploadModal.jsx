@@ -35,7 +35,7 @@ export default function NotesUploadModal({ close }) {
 			formData.append('file', file);
 
 			try {
-				const res = await fetch('/api/notes.php?action=upload', {
+				const res = await fetch(`${window.location.origin}/api/notes.php?action=upload`, {
 					method: 'POST',
 					body: formData,
 				});

@@ -34,7 +34,7 @@ function NotesPreview({ addMode, setAddMode }) {
 		const newTag = tag.trim();
 		const currentNote = notesStore.currentNote;
 
-		const response = await fetch('/api/tags.php', {
+		const response = await fetch(`${window.location.origin}/api/tags.php`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: newTag,
@@ -73,7 +73,7 @@ function NotesPreview({ addMode, setAddMode }) {
 
 		const currentNote = notesStore.currentNote;
 
-		await fetch(`/api/tags.php`, {
+		await fetch(`${window.location.origin}/api/tags.php`, {
 			method: 'DELETE',
 			body: JSON.stringify({
 				tagId: tag,
@@ -99,7 +99,7 @@ function NotesPreview({ addMode, setAddMode }) {
 
 		setLoading(true);
 
-		await fetch(`/api/notes.php?id=${currentNote.id}`, { method: 'DELETE' });
+		await fetch(`${window.location.origin}/api/notes.php?id=${currentNote.id}`, { method: 'DELETE' });
 		await notesStore.fetch();
 
 		notesStore.setCurrentNote(null);

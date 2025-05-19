@@ -20,7 +20,7 @@ function NotesPreviewForm({ note, close, update = false }) {
 		let res;
 
 		if (!update) {
-			res = await fetch('/api/notes.php', {
+			res = await fetch(`${window.location.origin}/api/notes.php`, {
 				method: 'POST',
 				body: JSON.stringify({
 					title: noteTitle(),
@@ -31,7 +31,7 @@ function NotesPreviewForm({ note, close, update = false }) {
 				},
 			});
 		} else {
-			res = await fetch(`/api/notes.php?id=${note.id}`, {
+			res = await fetch(`${window.location.origin}/api/notes.php?id=${note.id}`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					title: noteTitle(),

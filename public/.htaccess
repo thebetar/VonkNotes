@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# Allow /api/* routes to pass through
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^ - [L]
+
+# If the requested file or directory does not exist, rewrite to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

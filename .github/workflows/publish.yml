@@ -21,11 +21,11 @@ jobs:
               run: npm run build --production
             - name: 📝 Create config.php file
               run: |
-                  echo "<?php" > ./dist/config.php
-                  echo "\$DB_SERVER='${{ secrets.DB_SERVER }}';" >> ./dist/config.php
-                  echo "\$DB_NAME='${{ secrets.DB_NAME }}';" >> ./dist/config.php
-                  echo "\$DB_USERNAME='${{ secrets.DB_USERNAME }}';" >> ./dist/config.php
-                  echo "\$DB_PASSWORD='${{ secrets.DB_PASSWORD }}';" >> ./dist/config.php
+                  echo "<?php" > ./dist/api/config.php
+                  echo "\$DB_SERVER='${{ secrets.DB_SERVER }}';" >> ./dist/api/config.php
+                  echo "\$DB_NAME='${{ secrets.DB_NAME }}';" >> ./dist/api/config.php
+                  echo "\$DB_USERNAME='${{ secrets.DB_USERNAME }}';" >> ./dist/api/config.php
+                  echo "\$DB_PASSWORD='${{ secrets.DB_PASSWORD }}';" >> ./dist/api/config.php
             - name: 📁 Publish
               uses: Creepios/sftp-action@v1.0.5
               with:

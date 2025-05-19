@@ -29,7 +29,7 @@ function TagsPage() {
 	const navigate = useNavigate();
 
 	async function fetchTags() {
-		const response = await fetch('/api/tags.php');
+		const response = await fetch(`${window.location.origin}/api/tags.php`);
 		if (!response.ok) return;
 		const data = await response.json();
 		if (!data || !data.tags) return;
@@ -67,7 +67,7 @@ function TagsPage() {
 	// Assign new parent to tag
 	async function assignParent(newParentId) {
 		const tag = tagToEdit();
-		await fetch('/api/tags.php', {
+		await fetch(`${window.location.origin}/api/tags.php`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({

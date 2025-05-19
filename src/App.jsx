@@ -48,7 +48,7 @@ function App(props) {
 	});
 
 	const handleLogout = async () => {
-		await fetch('/api/auth.php?action=logout', { method: 'POST' });
+		await fetch(`${window.location.origin}/api/auth.php?action=logout`, { method: 'POST' });
 		setLoginModal(true);
 	};
 

@@ -1,25 +1,12 @@
 <?php
-include_once '../config.php';
-
-$db_server = $DB_SERVER;
-$db_name = $DB_NAME;
-$db_user = $DB_USERNAME;
-$db_password = $DB_PASSWORD;
+// Show errors
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 session_start();
 header('Content-Type: application/json');
 
-try {
-    $conn = new PDO("mysql:host=$db_server;dbname=$db_name", $db_user, $db_password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Database connection failed',
-        'details' => $e->getMessage()
-    ]);
-    exit;
-}
+include_once __DIR__ . '/database.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
