@@ -133,6 +133,7 @@ function NotesList({ setAddMode }) {
 							style="background: none; border: none; padding: 0; cursor: pointer;"
 							title="Clear filter"
 							onClick={() => {
+								setFilter('');
 								navigate('/notes', { replace: true });
 							}}
 						>
