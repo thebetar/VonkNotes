@@ -5,13 +5,13 @@ const [currentNote, setCurrentNote] = createSignal(null);
 
 const notesStore = {
     get notes() {
-        return notes();
+        return notes;
     },
     setNotes(newNotes) {
         setNotes(newNotes);
     },
     get currentNote() {
-        return currentNote();
+        return currentNote;
     },
     setCurrentNote(note) {
         setCurrentNote(note);

@@ -14,9 +14,6 @@ const MAX_PREVIEW_LENGTH = 80;
 function NotesList({ setAddMode }) {
 	const notesStore = useNotes();
 
-	const notes = () => notesStore.notes;
-	const currentNote = () => notesStore.currentNote;
-
 	const [filter, setFilter] = createSignal('');
 	const [filteredNotes, setFilteredNotes] = createSignal([]);
 	const [showUploadModal, setShowUploadModal] = createSignal(false);
@@ -46,7 +43,8 @@ function NotesList({ setAddMode }) {
 	}
 
 	function getFilteredNotes() {
-		return notes()
+		return notesStore
+			.notes()
 			.filter(n => `${n.title.toLowerCase()} ${n.content.toLowerCase()}`.includes(filter().toLowerCase()))
 			.sort((a, b) => {
 				// Matching .name should be prioritized
@@ -86,10 +84,10 @@ function NotesList({ setAddMode }) {
 			setFilteredNotes(getFilteredNotes());
 		}
 
-		if (notes().length > 0) {
+		if (notesStore.notes().length > 0) {
 			runFilter();
 		}
-	}, [notes(), filter, params]);
+	}, [notesStore.notes(), filter, params]);
 
 	// Helper to determine if any filter is active (text or tag)
 	const isFilterActive = () => filter().trim().length > 0 || !!params.tagId;
@@ -147,7 +145,7 @@ function NotesList({ setAddMode }) {
 				{filteredNotes().map(note => (
 					<li
 						class={`relative group h-24 flex items-center justify-between px-2 py-3 border-b border-zinc-700 cursor-pointer hover:bg-zinc-700 transition-colors ${
-							currentNote()?.title === note.title ? 'bg-zinc-700/60 font-semibold' : ''
+							notesStore.currentNote()?.title === note.title ? 'bg-zinc-700/60 font-semibold' : ''
 						}`}
 						onClick={() => {
 							localStorage.setItem('currentNote', note.title);

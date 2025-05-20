@@ -4,7 +4,7 @@ const [tags, setTags] = createSignal([]);
 
 export const useTags = () => ({
     get tags() {
-        return tags();
+        return tags;
     },
     setTags(newTags) {
         setTags(newTags);

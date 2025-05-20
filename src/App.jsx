@@ -25,7 +25,7 @@ function App(props) {
 			setLoginModal(true);
 		}
 
-		const notes = notesStore.notes;
+		const notes = notesStore.notes();
 
 		if (notes && notes.length === 0) {
 			notesStore.setCurrentNote(null);
@@ -102,7 +102,7 @@ function App(props) {
 					<header class="text-xl font-semibold px-4 pt-6 pb-2">Tags</header>
 
 					<ul class="flex flex-col gap-2 px-4 flex-1 overflow-y-auto py-2">
-						{tagsStore.tags.map(renderTagItem)}
+						{tagsStore.tags().map(renderTagItem)}
 					</ul>
 				</div>
 

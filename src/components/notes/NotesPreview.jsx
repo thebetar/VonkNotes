@@ -19,8 +19,6 @@ function NotesPreview({ addMode, setAddMode }) {
 
 	const navigate = useNavigate();
 
-	const currentNote = () => notesStore.currentNote;
-
 	const [loading, setLoading] = createSignal(false);
 	const [editMode, setEditMode] = createSignal(false);
 
@@ -37,7 +35,7 @@ function NotesPreview({ addMode, setAddMode }) {
 			return;
 		}
 
-		const currentNote = notesStore.currentNote;
+		const currentNote = notesStore.currentNote();
 
 		const response = await fetch(`${window.location.origin}/api/tags.php`, {
 			method: 'POST',
@@ -80,7 +78,7 @@ function NotesPreview({ addMode, setAddMode }) {
 	async function removeTag(tagId) {
 		setLoading(true);
 
-		const currentNote = notesStore.currentNote;
+		const currentNote = notesStore.currentNote();
 
 		await fetch(`${window.location.origin}/api/tags.php`, {
 			method: 'DELETE',
@@ -101,7 +99,7 @@ function NotesPreview({ addMode, setAddMode }) {
 	}
 
 	async function deleteNote() {
-		const currentNote = notesStore.currentNote;
+		const currentNote = notesStore.currentNote();
 
 		if (!window.confirm(`Delete note "${currentNote.title}"?`)) {
 			return;
@@ -142,7 +140,7 @@ function NotesPreview({ addMode, setAddMode }) {
 		let tagParentId = tag.parent_id;
 
 		while (tagParentId) {
-			const parentTag = tagsStore.tags.find(t => t.id === tagParentId);
+			const parentTag = tagsStore.tags().find(t => t.id === tagParentId);
 
 			if (parentTag) {
 				tagName = `${parentTag.name}/${tagName}`;
@@ -161,7 +159,7 @@ function NotesPreview({ addMode, setAddMode }) {
 		}
 
 		setHighlightedTag(null);
-		const filtered = tagsStore.tags.filter(tag => tag.name.toLowerCase().includes(tagInput().toLowerCase()));
+		const filtered = tagsStore.tags().filter(tag => tag.name.toLowerCase().includes(tagInput().toLowerCase()));
 		setFilteredTags(filtered.map(tag => tag.name));
 	});
 
@@ -190,14 +188,14 @@ function NotesPreview({ addMode, setAddMode }) {
 	return (
 		<main
 			class={`flex-1 lg:p-8 p-4 pb-16 overflow-y-auto bg-zinc-800 lg:relative absolute top-0 left-0 right-0 lg:z-0 z-10 min-h-screen lg:block ${
-				currentNote() || addMode() ? '' : 'hidden'
+				notesStore.currentNote() || addMode() ? '' : 'hidden'
 			}`}
 		>
 			{addMode() ? (
 				<NotesPreviewForm close={() => setAddMode(false)} />
 			) : editMode() ? (
-				<NotesPreviewForm close={() => setEditMode(false)} update note={currentNote()} />
-			) : currentNote() ? (
+				<NotesPreviewForm close={() => setEditMode(false)} update note={notesStore.currentNote()} />
+			) : notesStore.currentNote() ? (
 				<>
 					<button
 						class="lg:hidden block underline text-sm mb-4"
@@ -207,7 +205,7 @@ function NotesPreview({ addMode, setAddMode }) {
 					</button>
 
 					<div class="flex items-center justify-between mb-4 relative">
-						<h1 class="text-2xl font-bold flex-1">{currentNote().title}</h1>
+						<h1 class="text-2xl font-bold flex-1">{notesStore.currentNote().title}</h1>
 
 						<div class="flex gap-x-1">
 							<button
@@ -233,7 +231,7 @@ function NotesPreview({ addMode, setAddMode }) {
 					{/* Tag management */}
 					{!loading() && (
 						<div class="mb-4 flex flex-wrap items-center gap-2">
-							{currentNote().tags.map(renderTag)}
+							{notesStore.currentNote().tags.map(renderTag)}
 
 							<form
 								onSubmit={e => {
@@ -275,7 +273,7 @@ function NotesPreview({ addMode, setAddMode }) {
 						</div>
 					)}
 
-					<MarkdownPreview content={currentNote().content} />
+					<MarkdownPreview content={notesStore.currentNote().content} />
 				</>
 			) : (
 				<p class="text-zinc-400">Select a note to view its content.</p>
