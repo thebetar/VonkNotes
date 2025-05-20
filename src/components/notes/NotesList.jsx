@@ -1,9 +1,10 @@
 import { createEffect, createSignal } from 'solid-js';
-import { useParams } from '@solidjs/router';
+import { useParams, useNavigate } from '@solidjs/router';
 
 import PlusSvg from '../../assets/svg/used/plus.svg';
 import UploadSvg from '../../assets/svg/used/upload.svg';
 import NotesUploadModal from './NotesUploadModal';
+import XMarkSvg from '../../assets/svg/used/xmark.svg';
 
 import { useNotes } from '../../services/notes';
 
@@ -21,6 +22,7 @@ function NotesList({ setAddMode }) {
 	const [showUploadModal, setShowUploadModal] = createSignal(false);
 
 	const params = useParams();
+	const navigate = useNavigate();
 
 	function getPreviewDescription(content) {
 		const lines = content.split('\n');
@@ -89,6 +91,9 @@ function NotesList({ setAddMode }) {
 		}
 	}, [notes(), filter, params]);
 
+	// Helper to determine if any filter is active (text or tag)
+	const isFilterActive = () => filter().trim().length > 0 || !!params.tagId;
+
 	return (
 		<aside class="lg:w-80 w-screen bg-zinc-800 border-r border-zinc-700 lg:h-screen flex flex-col">
 			<div class="flex items-center justify-between px-4 py-5 border-b border-zinc-700">
@@ -113,14 +118,28 @@ function NotesList({ setAddMode }) {
 				</div>
 			</div>
 
-			<div class="px-4 py-2 border-b border-zinc-700">
-				<input
-					type="text"
-					class="w-full px-2 py-1 rounded bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-400 text-sm focus:outline-none"
-					placeholder="Filter notes..."
-					value={filter()}
-					onInput={e => setFilter(e.target.value)}
-				/>
+			<div class="px-4 py-2 border-b border-zinc-700 relative">
+				<div className="relative bg-zinc-700 border-zinc-600 px-2 py-1 rounded">
+					<input
+						type="text"
+						class="w-full h-full text-white placeholder-zinc-400 text-sm focus:outline-none cursor-text"
+						placeholder="Filter notes..."
+						value={filter()}
+						onInput={e => setFilter(e.target.value)}
+					/>
+					{isFilterActive() && (
+						<button
+							class="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
+							style="background: none; border: none; padding: 0; cursor: pointer;"
+							title="Clear filter"
+							onClick={() => {
+								navigate('/notes', { replace: true });
+							}}
+						>
+							<img src={XMarkSvg} class="w-4 h-4" alt="Clear filter" />
+						</button>
+					)}
+				</div>
 			</div>
 
 			<ul class="flex-1 overflow-y-scroll overflow-x-hidden">
