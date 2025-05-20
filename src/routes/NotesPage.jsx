@@ -7,7 +7,7 @@ function NotesPage() {
 	const [addMode, setAddMode] = createSignal(false);
 
 	return (
-		<div class="flex h-full min-h-screen">
+		<div class="flex h-full lg:min-h-screen min-h-[calc(100vh-56px)] relative">
 			{/* Sidebar for notes */}
 			<NotesList setAddMode={setAddMode} />
 

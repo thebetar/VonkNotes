@@ -36,6 +36,7 @@ function MarkdownEditor(props) {
 			easyMDE.toTextArea();
 			easyMDE = null;
 		}
+
 		if (styleTag) {
 			styleTag.remove();
 			styleTag = null;

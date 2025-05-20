@@ -5,6 +5,7 @@ import { useNotes } from './services/notes';
 import { useTags } from './services/tags';
 
 import routes from './constants/routes';
+import PowerOffSvg from './assets/svg/used/power-off.svg';
 import TagIcon from './assets/svg/used/tag.svg';
 import AuthModal from './components/AuthModal';
 
@@ -53,15 +54,13 @@ function App(props) {
 	};
 
 	const renderNavItem = item => (
-		<li>
-			<A
-				class="flex items-center gap-x-2 text-white hover:opacity-80 transition-opacity px-6 py-4"
-				activeClass="bg-zinc-700"
-				href={item.href}
-			>
-				<img src={item.icon} class="w-4 h-4" /> {item.name}
-			</A>
-		</li>
+		<A
+			class="flex items-center gap-x-2 text-white hover:opacity-80 transition-opacity px-6 py-4 lg:w-full w-28"
+			activeClass="bg-zinc-700"
+			href={item.href}
+		>
+			<img src={item.icon} class="w-4 h-4" /> {item.name}
+		</A>
 	);
 
 	const renderTagItem = item => {
@@ -72,44 +71,54 @@ function App(props) {
 		}
 
 		return (
-			<li>
-				<A
-					class="flex items-center w-fit gap-x-1 text-white hover:opacity-80 transition-opacity px-2 py-1 bg-indigo-800/30 rounded-md"
-					activeClass="bg-indigo-800/90 font-semibold"
-					href={href}
-				>
-					<img src={TagIcon} class="w-4 h-4" />
-					{item.name}
-				</A>
-			</li>
+			<A
+				class="flex items-center w-fit gap-x-1 text-white hover:opacity-80 transition-opacity px-2 py-1 rounded-md bg-indigo-900/50"
+				activeClass="bg-indigo-800/90 font-semibold"
+				href={href}
+			>
+				<img src={TagIcon} class="w-4 h-4" />
+				{item.name}
+			</A>
 		);
 	};
 
 	return (
 		<div class="flex">
-			<nav class="bg-zinc-900 h-screen w-80 text-white shadow-md z-50 relative max-h-screen flex flex-col">
-				<header class="text-xl font-semibold px-4 pt-6 pb-4">Assist AI</header>
+			<nav class="bg-zinc-900 text-white shadow-md z-50 max-h-screen flex lg:flex-col flex-row lg:h-screen h-14 lg:w-80 w-full lg:relative fixed bottom-0 left-0 right-0 lg:items-start items-center lg:justify-start justify-between">
+				<header class="text-xl font-semibold px-4 pt-6 pb-4 lg:block hidden">Assist AI</header>
 
-				<ul>{routes.map(renderNavItem)}</ul>
+				<div class="flex lg:flex-col flex-row lg:w-full w-full justify-between">
+					{routes.map(renderNavItem)}
+					<button
+						class="lg:hidden flex items-center gap-x-1 text-white hover:opacity-80 transition-opacity px-6 py-4 lg:w-full w-28"
+						onClick={() => setLoginModal(true)}
+					>
+						<img src={PowerOffSvg} class="w-4 h-4" />
+						Logout
+					</button>
+				</div>
 
-				<header class="text-xl font-semibold px-4 pt-6 pb-2">Tags</header>
+				<div className="flex-1 lg:flex hidden flex-col">
+					<header class="text-xl font-semibold px-4 pt-6 pb-2">Tags</header>
 
-				<ul class="flex flex-col gap-2 px-4 flex-1 overflow-y-auto py-2">
-					{tagsStore.tags.map(renderTagItem)}
-				</ul>
+					<ul class="flex flex-col gap-2 px-4 flex-1 overflow-y-auto py-2">
+						{tagsStore.tags.map(renderTagItem)}
+					</ul>
+				</div>
 
 				{/* Logout button at the bottom */}
-				<div class="px-4 pb-4 mt-auto">
+				<div class="lg:px-4 w-full lg:pb-4 lg:mt-auto items-center lg:flex hidden">
 					<button
-						class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm text-zinc-200 cursor-pointer transition-colors"
+						class="w-full flex items-center justify-center gap-2 px-3 py-2 lg:bg-zinc-700 hover:bg-zinc-600 rounded text-sm text-zinc-200 cursor-pointer transition-colors"
 						onClick={handleLogout}
 					>
+						<img src={PowerOffSvg} class="w-4 h-4" />
 						Log out
 					</button>
 				</div>
 			</nav>
 
-			<div class="h-screen w-screen overflow-y-scroll bg-zinc-800 text-white">
+			<div class="h-screen w-screen bg-zinc-800 text-white">
 				{loginModal() ? (
 					<AuthModal
 						onSuccess={() => {

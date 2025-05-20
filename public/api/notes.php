@@ -39,7 +39,7 @@ if ($method === 'GET') {
     $stmt = $conn->prepare(
         'SELECT 
             n.id, n.title, n.content, n.created_at, n.updated_at,
-            t.id AS tag_id, t.name AS tag_name
+            t.id AS tag_id, t.name AS tag_name, parent_id
         FROM notes n
         LEFT JOIN note_tags nt ON n.id = nt.note_id
         LEFT JOIN tags t ON nt.tag_id = t.id
@@ -66,7 +66,8 @@ if ($method === 'GET') {
         if ($row['tag_id']) {
             $notes[$note_id]['tags'][] = [
                 'id' => $row['tag_id'],
-                'name' => $row['tag_name']
+                'name' => $row['tag_name'],
+                'parent_id' => $row['parent_id']
             ];
         }
     }

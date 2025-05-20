@@ -61,7 +61,7 @@ export default function AuthModal({ onSuccess }) {
 	}
 
 	return (
-		<div class="fixed top-0 left-0 h-screen w-screen z-50 flex items-center justify-center bg-black/60">
+		<div class="fixed top-0 left-0 h-screen w-screen z-50 flex items-center justify-center bg-black/60 px-4">
 			<form
 				class="bg-zinc-800 text-white py-8 px-6 rounded-lg shadow-lg w-full max-w-sm flex flex-col gap-6 border border-zinc-900"
 				style={{ minWidth: '320px' }}
