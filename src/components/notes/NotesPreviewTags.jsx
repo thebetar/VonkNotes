@@ -134,24 +134,6 @@ export default function NotesPreviewTags() {
 		}
 	}
 
-	function getFullTagName(tag) {
-		let tagName = tag.name;
-		let tagParentId = tag.parent_id;
-
-		while (tagParentId) {
-			const parentTag = tagsStore.tags().find(t => t.id === tagParentId);
-
-			if (parentTag) {
-				tagName = `${parentTag.name}/${tagName}`;
-				tagParentId = parentTag.parent_id;
-			} else {
-				break;
-			}
-		}
-
-		return tagName;
-	}
-
 	function renderTag(tag) {
 		return (
 			<div
@@ -159,7 +141,7 @@ export default function NotesPreviewTags() {
 				onClick={() => navigate(`/notes/tag/${tag.id}`)}
 			>
 				<img src={TagSvg} class="w-[14px] h-[14px]" alt="Tag" />
-				<span class="text-base">{getFullTagName(tag)}</span>
+				<span class="text-base">{tagsStore.getFullTagName(tag.id)}</span>
 				<button
 					class="p-1 rounded-full hover:bg-red-700/50 cursor-pointer"
 					title="Delete tag"

@@ -92,30 +92,21 @@ function TagsPage() {
 		await tagsStore.fetch();
 	}
 
-	async function deleteTag(tagId) {
-		e.stopPropagation();
-
+	async function deleteTag(tag) {
 		if (!confirm(`Are you sure you want to delete tag "${tag.name}"?`)) {
 			return;
 		}
 
-		setLoading(true);
-
 		await fetch(`${window.location.origin}/api/tags.php`, {
 			method: 'DELETE',
 			body: JSON.stringify({
-				tagId,
+				tagId: tag.id,
 			}),
 			headers: { 'Content-Type': 'application/json' },
 		});
 
 		await notesStore.fetch();
 		await tagsStore.fetch();
-
-		setFilteredTags(filteredTags().filter(t => t.id !== tagId));
-		setHighlightedTag(null);
-
-		setLoading(false);
 	}
 
 	// Render columns for each level in the path
@@ -153,7 +144,7 @@ function TagsPage() {
 									{tag.note_count} notes, {tag.children.length} children
 								</span>
 							</span>
-							<div class="flex gap-1 items-center flex-col">
+							<div class="flex lg:gap-1 gap-x-2 items-center lg:flex-col flex-row">
 								{/* Eye icon to view notes for this tag */}
 								<div
 									class="p-1 rounded-full hover:bg-indigo-600/50 cursor-pointer transition-colors"
@@ -181,7 +172,7 @@ function TagsPage() {
 									class="p-1 rounded-full hover:bg-red-700/50 cursor-pointer transition-colors"
 									onClick={e => {
 										e.stopPropagation();
-										deleteTag(tag.id);
+										deleteTag(tag);
 									}}
 									title="Delete tag"
 								>

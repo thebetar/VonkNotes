@@ -41,4 +41,31 @@ export const useTags = () => ({
             return false;
         }
     },
+    getFullTagName(tagId) {
+        const tag = this.tags().find(t => t.id === tagId);
+
+        if (!tag) {
+            return '';
+        }
+
+        let tagName = tag.name;
+        let tagParentId = tag.parent_id;
+
+        while (tagParentId) {
+            const parentTag = this.tags().find(t => t.id === tagParentId);
+
+            if (parentTag) {
+                tagName = `${parentTag.name}/${tagName}`;
+                tagParentId = parentTag.parent_id;
+            } else {
+                break;
+            }
+        }
+
+        if (tagName.length > 30) {
+            return `.../${tag.name}`;
+        }
+
+        return tagName;
+    }
 })

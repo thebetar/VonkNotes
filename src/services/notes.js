@@ -32,11 +32,24 @@ const notesStore = {
                 return false;
             }
             const data = await response.json();
+
             if (!data || !data.notes) {
                 console.error('No notes found');
                 return false;
             }
+
             setNotes(data.notes);
+
+            if (this.currentNote() !== null) {
+                const foundNote = data.notes.find(n => n.id === this.currentNote().id);
+
+                if (foundNote) {
+                    this.setCurrentNote(foundNote);
+                } else {
+                    this.setCurrentNote(null);
+                }
+            }
+
             return true;
         } catch (error) {
             console.error('Error fetching notes:', error);

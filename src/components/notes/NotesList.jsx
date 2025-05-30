@@ -7,12 +7,14 @@ import NotesUploadModal from './NotesUploadModal';
 import XMarkSvg from '../../assets/svg/used/xmark.svg';
 
 import { useNotes } from '../../services/notes';
+import { useTags } from '../../services/tags';
 
 const STARTS_WITH_FILTER = ['#', '-', 'title:', 'uuid:', 'version:', 'created:', 'tags:'];
 const MAX_PREVIEW_LENGTH = 80;
 
 function NotesList({ setAddMode }) {
 	const notesStore = useNotes();
+	const tagsStore = useTags();
 
 	const [filter, setFilter] = createSignal('');
 	const [filteredNotes, setFilteredNotes] = createSignal([]);
@@ -89,8 +91,10 @@ function NotesList({ setAddMode }) {
 		}
 	}, [notesStore.notes(), filter, params]);
 
+	const isTagFilterActive = () => !!params.tagId;
+
 	// Helper to determine if any filter is active (text or tag)
-	const isFilterActive = () => filter().trim().length > 0 || !!params.tagId;
+	const isFilterActive = () => filter().trim().length > 0 || isTagFilterActive();
 
 	return (
 		<aside class="lg:w-80 w-screen bg-zinc-800 border-r border-zinc-700 lg:h-screen flex flex-col">
@@ -125,6 +129,12 @@ function NotesList({ setAddMode }) {
 						value={filter()}
 						onInput={e => setFilter(e.target.value)}
 					/>
+					{isTagFilterActive() && (
+						<span class="absolute right-7 top-1/2 -translate-y-1/2 text-zinc-400/50 text-xs">
+							{tagsStore.getFullTagName(Number(params.tagId))}
+						</span>
+					)}
+
 					{isFilterActive() && (
 						<button
 							class="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"

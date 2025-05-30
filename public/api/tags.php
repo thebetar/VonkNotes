@@ -193,6 +193,11 @@ if ($method === 'DELETE') {
             // Also delete all associations in note_tags
             $deleteNoteTagsStmt = $conn->prepare('DELETE FROM note_tags WHERE tag_id = ?');
             $deleteNoteTagsStmt->execute([$tag_id]);
+
+            // Set all notes that had this note as parent to NULL
+            $updateTagsStmt = $conn->prepare('UPDATE tags SET parent_id = NULL WHERE parent_id = ?');
+            $updateTagsStmt->execute([$tag_id]);
+
             echo json_encode(['success' => true]);
         } else {
             echo json_encode(['success' => false, 'error' => 'Failed to delete tag']);

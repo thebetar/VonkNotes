@@ -77,7 +77,7 @@ function App(props) {
 				href={href}
 			>
 				<img src={TagIcon} class="w-4 h-4" />
-				{item.name}
+				{tagsStore.getFullTagName(item.id)}
 			</A>
 		);
 	};
