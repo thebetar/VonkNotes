@@ -70,20 +70,49 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Insert tag if not exists
-    $tagStmt = $conn->prepare('SELECT id FROM tags WHERE name = ?');
-    $tagStmt->execute([$name]);
-    $tag = $tagStmt->fetch(PDO::FETCH_ASSOC);
+    // Handle hierarchical tags (e.g., "frontend/css")
+    $tagParts = explode('/', $name);
+    $parent_id = null;
+    $tag_id = null;
 
-    if (!$tag) {
-        $insertTagStmt = $conn->prepare('INSERT INTO tags (name, created_at, updated_at) VALUES (?, NOW(), NOW())');
-        $insertTagStmt->execute([$name]);
-        $tag_id = $conn->lastInsertId();
-    } else {
-        $tag_id = $tag['id'];
+    // Create parent tags if they don't exist
+    foreach ($tagParts as $tagPart) {
+        $tagPart = trim($tagPart);
+
+        // Skip empty parts
+        if (empty($tagPart)) {
+            continue;
+        }
+
+        // Check if tag exists with this name and parent
+        $stmt = $conn->prepare('SELECT id FROM tags WHERE name = ? AND parent_id ' . ($parent_id ? '= ?' : 'IS NULL'));
+
+        // Search tag with name
+        $params = [$tagPart];
+
+        // If we have a parent, add it to the parameters
+        if ($parent_id) {
+            $params[] = $parent_id;
+        }
+
+        // Execute the query
+        $stmt->execute($params);
+        $tag = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$tag) {
+            // Create new tag
+            $insertTagStmt = $conn->prepare('INSERT INTO tags (name, parent_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW())');
+            $insertTagStmt->execute([$tagPart, $parent_id]);
+            $tag_id = $conn->lastInsertId();
+        } else {
+            $tag_id = $tag['id'];
+        }
+
+        // This tag becomes the parent for the next level
+        $parent_id = $tag_id;
     }
 
-    // Link note and tag
+    // Link note and the final tag
     $noteTagStmt = $conn->prepare('INSERT IGNORE INTO note_tags (note_id, tag_id) VALUES (?, ?)');
     $noteTagStmt->execute([$note_id, $tag_id]);
 
@@ -106,6 +135,7 @@ if ($method === 'PATCH') {
 
     // Update tag name
     $stmt = $conn->prepare('UPDATE tags SET name = ?, parent_id = ?, updated_at = NOW() WHERE id = ?');
+
     if ($stmt->execute([$name, $parent_id, $tag_id])) {
         echo json_encode(['success' => true]);
     } else {
@@ -122,37 +152,51 @@ if ($method === 'DELETE') {
     $tag_id = $input['tagId'] ?? null;
     $note_id = $input['noteId'] ?? null;
 
-    if (!$tag_id || !$note_id) {
+    if (!$tag_id) {
         echo json_encode(['success' => false, 'error' => 'tagId and noteId required']);
         exit;
     }
 
-    // Check note ownership
-    $stmt = $conn->prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
-    $stmt->execute([$note_id, $user_id]);
-
-    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-        echo json_encode(['success' => false, 'error' => 'Note not found or not owned by user']);
-        exit;
-    }
-
-    // Remove tag from note
-    $stmt = $conn->prepare('DELETE FROM note_tags WHERE note_id = ? AND tag_id = ?');
-
-    if ($stmt->execute([$note_id, $tag_id])) {
-        echo json_encode(['success' => true]);
+    if ($note_id) {
+        // Check note ownership
+        $stmt = $conn->prepare('SELECT id FROM notes WHERE id = ? AND user_id = ?');
+        $stmt->execute([$note_id, $user_id]);
+    
+        if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+            echo json_encode(['success' => false, 'error' => 'Note not found or not owned by user']);
+            exit;
+        }
+    
+        // Remove tag from note
+        $stmt = $conn->prepare('DELETE FROM note_tags WHERE note_id = ? AND tag_id = ?');
+    
+        if ($stmt->execute([$note_id, $tag_id])) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Failed to remove tag from note']);
+        }
+    
+        // If the tag is not linked to any other notes, delete it
+        $stmt = $conn->prepare('SELECT COUNT(*) FROM note_tags WHERE tag_id = ?');
+        $stmt->execute([$tag_id]);
+        $count = $stmt->fetchColumn();
+    
+        if ($count == 0) {
+            $deleteTagStmt = $conn->prepare('DELETE FROM tags WHERE id = ?');
+            $deleteTagStmt->execute([$tag_id]);
+        }
     } else {
-        echo json_encode(['success' => false, 'error' => 'Failed to remove tag from note']);
-    }
-
-    // If the tag is not linked to any other notes, delete it
-    $stmt = $conn->prepare('SELECT COUNT(*) FROM note_tags WHERE tag_id = ?');
-    $stmt->execute([$tag_id]);
-    $count = $stmt->fetchColumn();
-
-    if ($count == 0) {
-        $deleteTagStmt = $conn->prepare('DELETE FROM tags WHERE id = ?');
-        $deleteTagStmt->execute([$tag_id]);
+        // If no note_id delete the tag and all it's associations
+        $stmt = $conn->prepare('DELETE FROM tags WHERE id = ?');
+        
+        if ($stmt->execute([$tag_id])) {
+            // Also delete all associations in note_tags
+            $deleteNoteTagsStmt = $conn->prepare('DELETE FROM note_tags WHERE tag_id = ?');
+            $deleteNoteTagsStmt->execute([$tag_id]);
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Failed to delete tag']);
+        }
     }
 
     exit;

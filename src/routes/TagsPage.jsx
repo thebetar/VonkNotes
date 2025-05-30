@@ -1,7 +1,12 @@
-import { createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
+
+import { useNotes } from '../services/notes';
+import { useTags } from '../services/tags';
+
 import FolderSvg from '../assets/svg/used/folder.svg';
 import EyeSvg from '../assets/svg/used/eye.svg';
+import TrashSvg from '../assets/svg/used/trash.svg';
 
 // Helper to build a tree from flat tags
 function buildTagTree(tags) {
@@ -24,28 +29,15 @@ function buildTagTree(tags) {
 }
 
 function TagsPage() {
-	const [tags, setTags] = createSignal([]);
+	const notesStore = useNotes();
+	const tagsStore = useTags();
+
+	const navigate = useNavigate();
+
 	const [editTag, setEditTag] = createSignal(null);
 	const [tree, setTree] = createSignal([]);
 	const [selectedPath, setSelectedPath] = createSignal([]); // Array of tag ids
 	const [showParentPopup, setShowParentPopup] = createSignal(false);
-	const navigate = useNavigate();
-
-	async function fetchTags() {
-		const response = await fetch(`${window.location.origin}/api/tags.php`);
-		if (!response.ok) return;
-		const data = await response.json();
-		if (!data || !data.tags) {
-			return;
-		}
-
-		setTags(data.tags);
-		setTree(buildTagTree(data.tags));
-	}
-
-	onMount(() => {
-		fetchTags();
-	});
 
 	// Get tags at a given path depth
 	function getTagsAtLevel(level) {
@@ -97,7 +89,33 @@ function TagsPage() {
 		setShowParentPopup(false);
 		setEditTag(null);
 
-		await fetchTags();
+		await tagsStore.fetch();
+	}
+
+	async function deleteTag(tagId) {
+		e.stopPropagation();
+
+		if (!confirm(`Are you sure you want to delete tag "${tag.name}"?`)) {
+			return;
+		}
+
+		setLoading(true);
+
+		await fetch(`${window.location.origin}/api/tags.php`, {
+			method: 'DELETE',
+			body: JSON.stringify({
+				tagId,
+			}),
+			headers: { 'Content-Type': 'application/json' },
+		});
+
+		await notesStore.fetch();
+		await tagsStore.fetch();
+
+		setFilteredTags(filteredTags().filter(t => t.id !== tagId));
+		setHighlightedTag(null);
+
+		setLoading(false);
 	}
 
 	// Render columns for each level in the path
@@ -123,7 +141,7 @@ function TagsPage() {
 					{tagsAtLevel.map(tag => (
 						<li
 							key={tag.id}
-							class={`relative group h-20 flex items-center justify-between px-2 py-3 border-b border-zinc-700 hover:bg-zinc-700 cursor-pointer transition-colors ${
+							class={`relative group h-22 flex items-center justify-between px-2 py-3 border-b border-zinc-700 hover:bg-zinc-700 cursor-pointer transition-colors ${
 								selectedPath()[level] === tag.id ? 'bg-zinc-700/60' : ''
 							}`}
 							onClick={() => handleTagClick(tag, level)}
@@ -135,28 +153,39 @@ function TagsPage() {
 									{tag.note_count} notes, {tag.children.length} children
 								</span>
 							</span>
-							<div class="flex gap-1 items-center">
+							<div class="flex gap-1 items-center flex-col">
 								{/* Eye icon to view notes for this tag */}
 								<div
-									class="p-2 rounded-full hover:bg-zinc-600/50 cursor-pointer transition-colors"
+									class="p-1 rounded-full hover:bg-indigo-600/50 cursor-pointer transition-colors"
 									onClick={e => {
 										e.stopPropagation();
 										navigate(`/notes/tag/${tag.id}`);
 									}}
 									title="View notes with this tag"
 								>
-									<img src={EyeSvg} class="w-4 h-4" alt="View" />
+									<img src={EyeSvg} class="w-[14px] h-[14px]" alt="View" />
 								</div>
 								{/* Folder icon to change parent */}
 								<div
-									class="p-2 rounded-full hover:bg-zinc-600/50 cursor-pointer transition-colors"
+									class="p-1 rounded-full hover:bg-green-600/50 cursor-pointer transition-colors"
 									onClick={e => {
 										e.stopPropagation();
 										handleFolderClick(tag);
 									}}
 									title="Change parent tag"
 								>
-									<img src={FolderSvg} class="w-4 h-4" alt="Folder" />
+									<img src={FolderSvg} class="w-[14px] h-[14px]" alt="Folder" />
+								</div>
+								{/* Trash icon to delete tag */}
+								<div
+									class="p-1 rounded-full hover:bg-red-700/50 cursor-pointer transition-colors"
+									onClick={e => {
+										e.stopPropagation();
+										deleteTag(tag.id);
+									}}
+									title="Delete tag"
+								>
+									<img src={TrashSvg} class="w-[14px] h-[14px]" alt="Delete" />
 								</div>
 							</div>
 						</li>
@@ -175,7 +204,8 @@ function TagsPage() {
 
 	// Popup for selecting parent tag
 	function ParentPopup() {
-		const allTags = tags();
+		const allTags = buildTagTree(tagsStore.tags());
+
 		return (
 			<div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 				<div class="bg-zinc-900 p-6 rounded shadow-lg min-w-[20rem]">
@@ -211,6 +241,10 @@ function TagsPage() {
 			</div>
 		);
 	}
+
+	createEffect(() => {
+		setTree(buildTagTree(tagsStore.tags()));
+	});
 
 	return (
 		<div class="relative flex h-full lg:min-h-screen min-h-[100vh-56px] lg:max-h-none max-h-[calc(100vh-56px)]">
